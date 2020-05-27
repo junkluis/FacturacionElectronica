@@ -39,6 +39,16 @@ class Producto
      */
     private $detalleFacturas;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $stock;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $impuesto;
+
     public function __construct()
     {
         $this->detalleFacturas = new ArrayCollection();
@@ -112,6 +122,30 @@ class Producto
                 $detalleFactura->setProducto(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStock(): ?int
+    {
+        return $this->stock;
+    }
+
+    public function setStock(int $stock): self
+    {
+        $this->stock = $stock;
+
+        return $this;
+    }
+
+    public function getImpuesto(): ?bool
+    {
+        return $this->impuesto;
+    }
+
+    public function setImpuesto(bool $impuesto): self
+    {
+        $this->impuesto = $impuesto;
 
         return $this;
     }

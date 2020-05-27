@@ -56,6 +56,21 @@ class Factura
      */
     private $detalleFacturas;
 
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $subtotal;
+
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $impuestos;
+
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $total;
+
     public function __construct()
     {
         $this->detalleFacturas = new ArrayCollection();
@@ -165,6 +180,42 @@ class Factura
                 $detalleFactura->setFactura(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSubtotal(): ?float
+    {
+        return $this->subtotal;
+    }
+
+    public function setSubtotal(float $subtotal): self
+    {
+        $this->subtotal = $subtotal;
+
+        return $this;
+    }
+
+    public function getImpuestos(): ?float
+    {
+        return $this->impuestos;
+    }
+
+    public function setImpuestos(float $impuestos): self
+    {
+        $this->impuestos = $impuestos;
+
+        return $this;
+    }
+
+    public function getTotal(): ?float
+    {
+        return $this->total;
+    }
+
+    public function setTotal(float $total): self
+    {
+        $this->total = $total;
 
         return $this;
     }
