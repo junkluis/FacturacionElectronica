@@ -1,0 +1,428 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clientes{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+<style type="text/css">
+    .nav-link{font-size:20px !important;}
+    .btn-success{margin-top: 30px;}
+    .div-btn{text-align: end;}
+    #msjError{background-color: #ffe4e4; margin:10px;padding:10px; width: 100%;color:red;}
+    .imp{font-size: 20px;}
+</style>
+{% endblock %}
+
+{% block menu %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav mx-auto" style="font-size:10px">
+        <li class="nav-item">
+            <a href="/facturacion" class="nav-link"><span data-hover="Facturas">Facturas</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/clientes" class="nav-link"><span style="color:#ffc200" data-hover="Clientes">Clientes</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/empresas" class="nav-link"><span data-hover="Empresas">Empresas</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/productos" class="nav-link"><span  data-hover="Productos">Productos</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/configuracion" class="nav-link"><span data-hover="Configuracion">Configuracion</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/logout" class="nav-link"><span data-hover="LogOut">Logout</span></a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block body %}
+<section class="sample-text-area" style="margin-top: 40px;">
+    <div class="container box_1170">
+        <div class="row">
+            <div class="col-6"><h1><i class="fas fa-user-tie"></i> Clientes</h1></div>
+            <div class="col-6 div-btn">
+                <button type="button" class="btn btn-success" onclick="abrirModalForm('nuevo', 0)">
+                    <i class="fas fa-plus"></i> Agregar Nuevo Cliente
+                </button>
+            </div>
+        </div>
+        <table id="tabla-clientes" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>RUC / CI</th>
+                    <th>Razon Social</th>
+                    <th>telefono</th>
+                    <th>direccion</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+              {% for cliente in clientes %}
+                  <tr>
+                    <td><span class="id-cliente" value="{{ cliente.id }}">{{ cliente.id }}</span></td>
+                    <td>{{ cliente.ciRuc }}</td>
+                    <td>{{ cliente.razonSocial }}</td>
+                    <td>{{ cliente.telefono }}</td>
+                    <td>{{ cliente.direccion }}</td>
+                    <td>
+                      <button type="button" class="btn btn-secondary btn-editar" value="{{ cliente.id }}">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button type="button" class="btn btn-danger btn-eliminar" value="{{ cliente.id }}">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </td>
+                  </tr>
+              {% endfor %}               
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Modal -->
+<div class="modal fade" id="ModalForm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="Modaltitulo">Nuevo Cliente</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form>
+          <div class="modal-body">
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="ruc">RUC / CI</label>
+                  <input type="text" class="form-control" id="ruc" required="required">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="telefono">Telefono</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text"><i class="fas fa-phone-alt"></i></div>
+                    </div>
+                    <input type="text" class="form-control" id="telefono" required="required">
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="razonSocial">Razon Social</label>
+                  <input type="text" class="form-control" id="razonSocial" placeholder="" required="required">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="direccion">direccion</label>
+                  <input type="text" class="form-control" id="direccion" required="required">
+                </div>
+              </div>
+              <div class="form-row error" style="display:none">
+                  <span id="msjError"><i class="fas fa-exclamation-circle"></i><span id="msje"></span></span>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="btn-modal-form" onclick="nuevoCliente()">Guardar</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="Advertencia" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Se va a eliminar un Cliente</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Esta seguro que desea continuar?.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger eliminar-definitivo" data-dismiss="modal" value="0" >Eliminar Cliente</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function() 
+    {
+        $('#tabla-clientes').DataTable( {
+            "language": {
+                url: 'https://cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json'
+            },
+            "order": [[ 0, "desc" ]]
+        });
+
+      $(document).on('click', '.btn-eliminar', function(){
+          id = $(this).attr("value");
+          alertaEliminar(id);
+      });
+
+      $(".eliminar-definitivo").click(function(){
+          id = $(this).attr("value");
+          eliminarCliente(id);
+      });
+
+      $(document).on('click', '.btn-editar', function(){
+          id = $(this).attr("value");
+          abrirModalForm('editar', id);
+      });
+    } );
+
+
+  function abrirModalForm(accion, id)
+  {
+
+        $("#ModalForm").modal('show');
+        $("#Modaltitulo").empty();
+
+        if(accion == "nuevo"){
+            $("#Modaltitulo").append("Nuevo Cliente");
+            $("#ruc").val("");
+            $("#telefono").val("");
+            $("#razonSocial").val("");
+            $("#direccion").val("");
+            $("#btn-modal-form").attr("onclick", "nuevoCliente()");
+        } else {
+            $("#Modaltitulo").append("Editar Cliente N#" + id);
+            row = $(".id-cliente[value='"+id+"']").parent().parent().find("td");
+            $("#ruc").val(row[1].outerText);
+            $("#telefono").val(row[3].outerText);
+            $("#razonSocial").val(row[2].outerText);
+            $("#direccion").val(row[4].outerText);
+
+            $("#btn-modal-form").attr("onclick", "editarCliente('"+id+"')");
+        } 
+  }
+
+
+  function nuevoCliente()
+  {
+
+        $(".error").hide();
+
+        ruc = $("#ruc").val();
+        telefono = $("#telefono").val();
+        razonSocial = $("#razonSocial").val();
+        direccion = $("#direccion").val();
+
+        if( ruc =="" || telefono =="" || razonSocial =="" || direccion =="" ){
+          $(".error").show();
+          $("#msje").empty();
+          $("#msje").append(" Por favor ingresar todos los datos");
+
+        } else if( ruc.match(/^[0-9]+$/) == null ){
+          $(".error").show();
+          $("#msje").empty();
+          $("#msje").append(" Solo ingrese numeros en el RUC/CI");
+
+        } else if( telefono.match(/^[0-9]+$/) == null ){
+            $(".error").show();
+            $("#msje").empty();
+            $("#msje").append(" Solo ingrese numeros en el telefono");
+
+        } else {
+
+            $.ajax({
+                type:"POST",
+                url:"/clientes/verificarRUC",
+                data:{
+                  'ruc': ruc,
+                  'id': 0
+                },
+                success: function(datos){
+                    if(datos["msj"] == "ocupado"){
+                      $(".error").show();
+                      $("#msje").empty();
+                      $("#msje").append(" El RUC ingresado ya esta registrado.");
+
+                    } else {
+
+                       $.ajax({
+                        type:"POST",
+                        url:"/clientes/nuevoCliente",
+                        data:{
+                          'ruc': ruc,
+                          'razonsocial': razonSocial,
+                          'telefono': telefono,
+                          'direccion': direccion,
+
+                        },
+                        success: function(datos){
+
+                          $("#ruc").val("");
+                          $("#telefono").val("");
+                          $("#razonSocial").val("");
+                          $("#direccion").val("");
+                          
+                          $("#ModalForm").modal('hide');
+
+                          idSpan = '<span class="id-cliente" value="'+datos["id"]+'">'+datos["id"]+'</span>';
+
+                          acciones = '<button type="button" class="btn btn-secondary btn-editar" value="'+datos["id"]+
+                          '"><i class="fas fa-pen"></i> </button> <button type="button" class="btn btn-danger btn-eliminar" value="'+datos["id"]+'"> <i class="fas fa-times"></i></button>';
+
+                          var table = $('#tabla-clientes').DataTable();
+                          table.row.add([
+                              idSpan,
+                              datos["ruc"],
+                              datos["razonsocial"],
+                              datos["telefono"],
+                              datos["direccion"],
+                              acciones
+                            ]).draw();
+                        }
+                        
+                      });
+
+                    }
+                }
+            });
+
+
+
+         
+        }
+  }
+
+
+  function alertaEliminar(id)
+  {
+        $("#Advertencia").modal("show");
+        $(".eliminar-definitivo").attr("value", id);
+  }
+
+
+  function eliminarCliente(id)
+  {
+
+     $.ajax({
+        type:"POST",
+        url:"/clientes/eliminarCliente",
+        data:{
+          'id': id
+        },
+        success: function(datos){
+          row = $(".id-cliente[value='"+id+"']").parent().parent();
+          table = $('#tabla-clientes').DataTable();
+          table.row( row ).remove().draw();
+        }
+      });
+  }
+
+
+  function editarCliente(id)
+  {
+        $(".error").hide();
+
+        ruc = $("#ruc").val();
+        telefono = $("#telefono").val();
+        razonSocial = $("#razonSocial").val();
+        direccion = $("#direccion").val();
+
+         if( ruc =="" || telefono =="" || razonSocial =="" || direccion =="" ){
+          $(".error").show();
+          $("#msje").empty();
+          $("#msje").append(" Por favor ingresar todos los datos");
+
+        } else if( ruc.match(/^[0-9]+$/) == null ){
+          $(".error").show();
+          $("#msje").empty();
+          $("#msje").append(" Solo ingrese numeros en el RUC/CI");
+
+        } else if( telefono.match(/^[0-9]+$/) == null ){
+          $(".error").show();
+          $("#msje").empty();
+          $("#msje").append(" Solo ingrese numeros en el telefono");
+
+        } else {
+
+
+          $.ajax({
+                type:"POST",
+                url:"/clientes/verificarRUC",
+                data:{
+                  'ruc': ruc,
+                  'id': id
+                },
+                success: function(datos){
+                    if(datos["msj"] == "ocupado"){
+                      $(".error").show();
+                      $("#msje").empty();
+                      $("#msje").append(" El RUC ingresado ya esta registrado.");
+                    } else {
+                      $.ajax({
+                        type:"POST",
+                        url:"/clientes/editarCliente",
+                        data:{
+                          'id':id,
+                          'ruc': ruc,
+                          'telefono': telefono,
+                          'razonsocial': razonSocial,
+                          'direccion': direccion,
+
+                        },
+                        success: function(datos){
+
+                          $("#ruc").val("");
+                          $("#telefono").val("");
+                          $("#razonSocial").val("");
+                          $("#direccion").val("");
+                          
+                          $("#ModalForm").modal('hide');
+                          idSpan = '<span class="id-cliente" value="'+datos["id"]+'">'+datos["id"]+'</span>';
+
+                          acciones = '<button type="button" class="btn btn-secondary btn-editar" value="'+datos["id"]+
+                          '"><i class="fas fa-pen"></i> </button> <button type="button" class="btn btn-danger btn-eliminar" value="'+datos["id"]+'"> <i class="fas fa-times"></i></button>';
+
+                          row = $(".id-cliente[value='"+id+"']").parent().parent();
+
+                          var table = $('#tabla-clientes').DataTable();
+                          newData = [ idSpan,
+                                      datos["ruc"],
+                                      datos["razonsocial"],
+                                      datos["telefono"],
+                                      datos["direccion"],
+                                      acciones ];
+                          table.row(row).data( newData ).draw();
+
+
+                        }
+                      });
+
+                    }
+                  }
+                });
+
+
+
+
+          
+        }
+  }
+
+
+
+</script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+
+
+{% endblock %}

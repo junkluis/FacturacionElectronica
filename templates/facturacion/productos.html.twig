@@ -1,0 +1,420 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Productos{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+<style type="text/css">
+    .nav-link{font-size:20px !important;}
+    .btn-success{margin-top: 30px;}
+    .div-btn{text-align: end;}
+    #msjError{background-color: #ffe4e4; margin:10px;padding:10px; width: 100%;color:red;}
+    .imp{font-size: 20px;}
+</style>
+{% endblock %}
+
+{% block menu %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav mx-auto" style="font-size:10px">
+        <li class="nav-item">
+            <a href="/facturacion" class="nav-link"><span data-hover="Facturas">Facturas</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/clientes" class="nav-link"><span data-hover="Clientes">Clientes</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/empresas" class="nav-link"><span data-hover="Empresas">Empresas</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/productos" class="nav-link"><span style="color:#ffc200" data-hover="Productos">Productos</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/configuracion" class="nav-link"><span data-hover="Configuracion">Configuracion</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/logout" class="nav-link"><span data-hover="LogOut">Logout</span></a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block body %}
+<section class="sample-text-area" style="margin-top: 40px;">
+	<div class="container box_1170">
+        <div class="row">
+            <div class="col-6"><h1><i class="fas fa-box"></i> Productos</h1></div>
+            <div class="col-6 div-btn">
+                <button type="button" class="btn btn-success" onclick="abrirModalForm('nuevo', 0)">
+                    <i class="fas fa-plus"></i> Agregar Producto
+                </button>
+            </div>
+        </div>
+		<table id="tabla-productos" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Codigo</th>
+                    <th>Detalle</th>
+                    <th>Precio Unit.</th>
+                    <th>Cant. Stock</th>
+                    <th>Aplica impuestos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+              {% for producto in productos %}
+                  <tr>
+                    <td><span class="id-producto" value="{{ producto.id }}">{{ producto.id }}</span></td>
+                    <td>{{ producto.codigo }}</td>
+                    <td>{{ producto.detalle }}</td>
+                    <td>${{ producto.precioUnit }}</td>
+                    <td>{{ producto.stock }}</td>
+                    <td>
+                      {% if producto.impuesto %}
+                        <i class="fas fa-check-circle imp"></i>
+                      {% else %}
+                        <i class="fas fa-times-circle imp"></i>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-secondary btn-editar" value="{{ producto.id }}">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button type="button" class="btn btn-danger btn-eliminar" value="{{ producto.id }}">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </td>
+                  </tr>
+              {% endfor %}               
+            </tbody>
+        </table>
+	</div>
+</section>
+
+<!-- Modal -->
+<div class="modal fade" id="ModalForm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="Modaltitulo">Nuevo Producto</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form>
+          <div class="modal-body">
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="codigo">Codigo</label>
+                  <input type="text" class="form-control" id="codigo" placeholder="COD-XYZ" required="required">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="precio">Precio (Unit)</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">$</div>
+                    </div>
+                    <input type="number" class="form-control" id="precio" placeholder="00.00" required="required">
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="detalle">Detalle</label>
+                  <input type="text" class="form-control" id="detalle" placeholder="" required="required">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="stock">Stock</label>
+                  <input type="number" class="form-control" id="stock" placeholder="0" required="required">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-md-3 offset-md-9">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="impuestos" checked="checked">
+                    <label class="form-check-label" for="impuestos">
+                      Aplica Impuestos
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row error" style="display:none">
+                  <span id="msjError"><i class="fas fa-exclamation-circle"></i><span id="msje"></span></span>
+              </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="btn-modal-form" onclick="nuevoProducto()">Guardar</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="Advertencia" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Se va a eliminar un Producto</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Esta seguro que desea continuar?.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger eliminar-definitivo" data-dismiss="modal" value="0" >Eliminar Producto</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+
+<script type="text/javascript">
+
+	$(document).ready(function() {
+	    $('#tabla-productos').DataTable( {
+            "language": {
+                url: 'https://cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json'
+            },
+            "order": [[ 0, "desc" ]]
+        });
+
+      $(document).on('click', '.btn-eliminar', function(){
+          id = $(this).attr("value");
+          alertaEliminar(id);
+      });
+
+      $(".eliminar-definitivo").click(function(){
+          id = $(this).attr("value");
+          eliminarProducto(id);
+      });
+
+      $(document).on('click', '.btn-editar', function(){
+          id = $(this).attr("value");
+          abrirModalForm('editar', id);
+      });
+
+	} );
+
+
+  function abrirModalForm(accion, id){
+
+    $("#ModalForm").modal('show');
+    $("#Modaltitulo").empty();
+    if(accion == "nuevo"){
+      $("#Modaltitulo").append("Nuevo Producto");
+      $("#codigo").val("");
+      $("#precio").val("");
+      $("#detalle").val("");
+      $("#stock").val("");
+      $("#btn-modal-form").attr("onclick", "nuevoProducto()");
+
+
+    } else {
+      $("#Modaltitulo").append("Editar Producto N#" + id);
+      row = $(".id-producto[value='"+id+"']").parent().parent().find("td");
+      $("#codigo").val(row[1].outerText);
+      $("#precio").val(row[3].outerText);
+      $("#detalle").val(row[2].outerText);
+      $("#stock").val(row[4].outerText);
+      
+      if($(row[5].children[0]).hasClass("fa-check-circle")){
+        $("#impuestos").prop('checked', true);
+      } else {
+        $("#impuestos").prop('checked', false);
+      }
+
+      $("#btn-modal-form").attr("onclick", "editarProducto('"+id+"')");
+
+
+
+    }
+    
+  }
+
+
+  function nuevoProducto(){
+
+    $(".error").hide();
+
+    codigo = $("#codigo").val();
+    precio = $("#precio").val();
+    detalle = $("#detalle").val();
+    stock = $("#stock").val();
+    impuesto = $("#impuestos").is(':checked');
+
+    if( codigo =="" || precio =="" || detalle =="" || stock =="" ){
+      $(".error").show();
+      $("#msje").empty();
+      $("#msje").append(" Por favor ingresar todos los datos");
+
+    } else if( precio <= 0 ){
+      $(".error").show();
+      $("#msje").empty();
+      $("#msje").append(" El precio no puede ser cero o menor");
+
+    } else if( stock <= 0 ){
+      $(".error").show();
+      $("#msje").empty();
+      $("#msje").append(" El stock no puede ser cero o menor");
+
+    } else {
+
+      $.ajax({
+        type:"POST",
+        url:"/productos/nuevoProducto",
+        data:{
+          'codigo': codigo,
+          'precio': precio,
+          'detalle': detalle,
+          'stock': stock,
+          'impuesto': impuesto
+
+        },
+        success: function(datos){
+
+          $("#codigo").val("");
+          $("#precio").val("");
+          $("#detalle").val("");
+          $("#stock").val("");
+          
+          $("#ModalForm").modal('hide');
+
+          idSpan = '<span class="id-producto" value="'+datos["id"]+'">'+datos["id"]+'</span>';
+
+          console.log(datos["impuesto"]);
+          if(datos["impuesto"] == true){
+            icono_imp = '<i class="fas fa-check-circle imp"></i>';
+          } else {
+            icono_imp = '<i class="fas fa-times-circle imp"></i>';
+          }
+
+          acciones = '<button type="button" class="btn btn-secondary btn-editar" value="'+datos["id"]+
+          '"><i class="fas fa-pen"></i> </button> <button type="button" class="btn btn-danger btn-eliminar" value="'+datos["id"]+'"> <i class="fas fa-times"></i></button>';
+
+          var table = $('#tabla-productos').DataTable();
+          table.row.add([
+              idSpan,
+              datos["codigo"],
+              datos["detalle"],
+              "$"+datos["precio"],
+              datos["stock"],
+              icono_imp,
+              acciones
+            ]).draw();
+        }
+      });
+    }
+  }
+
+
+  function alertaEliminar(id){
+    $("#Advertencia").modal("show");
+    $(".eliminar-definitivo").attr("value", id);
+  }
+
+
+  function eliminarProducto(id){
+
+     $.ajax({
+        type:"POST",
+        url:"/productos/eliminarProducto",
+        data:{
+          'id': id
+        },
+        success: function(datos){
+          row = $(".id-producto[value='"+id+"']").parent().parent();
+          table = $('#tabla-productos').DataTable();
+          table.row( row ).remove().draw();
+        }
+      });
+  }
+
+
+  function editarProducto(id){
+    $(".error").hide();
+
+    codigo = $("#codigo").val();
+    precio = $("#precio").val();
+    detalle = $("#detalle").val();
+    stock = $("#stock").val();
+    impuesto = $("#impuestos").is(':checked');
+
+    if( codigo =="" || precio =="" || detalle =="" || stock =="" ){
+      $(".error").show();
+      $("#msje").empty();
+      $("#msje").append(" Por favor ingresar todos los datos");
+
+    } else if( precio <= 0 ){
+      $(".error").show();
+      $("#msje").empty();
+      $("#msje").append(" El precio no puede ser cero o menor");
+
+    } else {
+
+      $.ajax({
+        type:"POST",
+        url:"/productos/editarProducto",
+        data:{
+          'id':id,
+          'codigo': codigo,
+          'precio': precio,
+          'detalle': detalle,
+          'stock': stock,
+          'impuesto': impuesto
+
+        },
+        success: function(datos){
+
+          $("#codigo").val("");
+          $("#precio").val("");
+          $("#detalle").val("");
+          $("#stock").val("");
+          
+          $("#ModalForm").modal('hide');
+          idSpan = '<span class="id-producto" value="'+datos["id"]+'">'+datos["id"]+'</span>';
+
+          if(datos["impuesto"] == true){
+            icono_imp = '<i class="fas fa-check-circle imp"></i>';
+          } else {
+            icono_imp = '<i class="fas fa-times-circle imp"></i>';
+          }
+
+          acciones = '<button type="button" class="btn btn-secondary btn-editar" value="'+datos["id"]+
+          '"><i class="fas fa-pen"></i> </button> <button type="button" class="btn btn-danger btn-eliminar" value="'+datos["id"]+'"> <i class="fas fa-times"></i></button>';
+
+          row = $(".id-producto[value='"+id+"']").parent().parent();
+
+          var table = $('#tabla-productos').DataTable();
+          newData = [ idSpan,
+                      datos["codigo"],
+                      datos["detalle"],
+                      "$"+datos["precio"],
+                      datos["stock"],
+                      icono_imp,
+                      acciones ];
+          table.row(row).data( newData ).draw();
+
+
+        }
+      });
+    }
+  }
+
+
+
+</script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+
+
+{% endblock %}

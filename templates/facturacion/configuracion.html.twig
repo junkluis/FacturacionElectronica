@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Facturas{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+<style type="text/css">
+    .nav-link{font-size:20px !important;}
+</style>
+{% endblock %}
+
+{% block menu %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav mx-auto" style="font-size:10px">
+        <li class="nav-item">
+            <a href="/facturacion" class="nav-link"><span  data-hover="Facturas">Facturas</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/clientes" class="nav-link"><span data-hover="Clientes">Clientes</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/empresas" class="nav-link"><span  data-hover="Empresas">Empresas</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/productos" class="nav-link"><span data-hover="Productos">Productos</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/configuracion" class="nav-link"><span style="color:#ffc200" data-hover="Configuracion">Configuracion</span></a>
+        </li>
+        <li class="nav-item">
+            <a href="/logout" class="nav-link"><span data-hover="LogOut">Logout</span></a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block body %}
+<section class="sample-text-area" style="margin-top: 40px;">
+	<div class="container box_1170">
+		<h1><i class="fas fa-cog"></i> Configuracion</h1>
+		
+	</div>
+</section>
+
+{% endblock %}
+
+{% block javascripts %}
+
+
+<script type="text/javascript">
+	$(document).ready(function() {
+	    $('#facturas').DataTable( {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json'
+            }
+        });
+
+	} );
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+
+
+{% endblock %}

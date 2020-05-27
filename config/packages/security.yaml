@@ -26,4 +26,8 @@ security:
     access_control:
         - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/facturacion, roles: ROLE_ADMIN }
+        - { path: ^/clientes, roles: ROLE_ADMIN }
+        - { path: ^/empresas, roles: ROLE_ADMIN }
+        - { path: ^/productos, roles: ROLE_ADMIN }
+        - { path: ^/configuracion, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
