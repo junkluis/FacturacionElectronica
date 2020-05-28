@@ -5,6 +5,11 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
 <style type="text/css">
     .nav-link{font-size:20px !important;}
+    .btn-success{margin-top: 30px;}
+    .div-btn{text-align: end;}
+    #msjError{background-color: #ffe4e4; padding:10px; width: 100%;color:red;}
+    #msjListo{background-color: #e5ffe4; padding:10px; width: 100%;color:green;}
+    .imp{font-size: 20px;}
 </style>
 {% endblock %}
 
@@ -38,6 +43,38 @@
 <section class="sample-text-area" style="margin-top: 40px;">
 	<div class="container box_1170">
 		<h1><i class="fas fa-cog"></i> Configuracion</h1>
+        
+
+        <form style="margin-left:60px">
+              <div class="form-group row">
+                <label for="establecimiento" class="col-sm-2 col-form-label">Establecimiento</label>
+                <div class="col-sm-4">
+                  <input type="text" class="form-control" id="establecimiento" value="{{establecimiento}}" placeholder="000" maxlength="3">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="puntoEmision" class="col-sm-2 col-form-label">Punto de emision</label>
+                <div class="col-sm-4">
+                  <input type="text" class="form-control" id="puntoEmision" value="{{puntoEmision}}" placeholder="000" maxlength="3">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="secuencia" class="col-sm-2 col-form-label">Secuencia</label>
+                <div class="col-sm-4">
+                  <input type="text" class="form-control" id="secuencia" value="{{secuencia}}" placeholder="000000000" maxlength="9">
+                </div>
+              </div>
+              <div class="form-row error" style="display:none">
+                  <span id="msjError"><i class="fas fa-exclamation-circle"></i><span id="msje"></span></span>
+              </div>
+              <div class="form-row listo" style="display:none">
+                  <span id="msjListo"><i class="fas fa-check"></i><span id="mensaje"></span></span>
+              </div>
+            <br>
+            <button type="button" class="btn btn-secondary" id="btn-limpiar">Limpiar</button>
+            <button type="button" class="btn btn-primary" id="btn-actualizar" >Actualizar</button>
+        </form>
+          
 		
 	</div>
 </section>
@@ -48,6 +85,7 @@
 
 
 <script type="text/javascript">
+
 	$(document).ready(function() {
 	    $('#facturas').DataTable( {
             language: {
@@ -55,7 +93,68 @@
             }
         });
 
+        $("#btn-actualizar").click(function() {
+            actualizarConfiguracion();
+        });
+
+        $("#btn-limpiar").click(function() {
+            limpiarCampos();
+        });
+
 	} );
+
+
+    function limpiarCampos(){
+        establecimiento = $("#establecimiento").val("");
+        puntoEmision = $("#puntoEmision").val("");
+        secuencia = $("#secuencia").val("");
+    }
+
+    function actualizarConfiguracion(){
+
+        establecimiento = $("#establecimiento").val();
+        puntoEmision = $("#puntoEmision").val();
+        secuencia = $("#secuencia").val();
+
+        if( establecimiento =="" || puntoEmision =="" || secuencia =="" ){
+            $(".error").show();
+            $("#msje").empty();
+            $("#msje").append(" Se requiere que llene todos los campos");
+
+        }  else if( establecimiento.match(/^[0-9]{3}$/) == null ){
+            $(".error").show();
+            $("#msje").empty();
+            $("#msje").append(" El establecimiento debe tener 3 numeros enteros");
+
+        } else if( puntoEmision.match(/^[0-9]{3}$/) == null ){
+            $(".error").show();
+            $("#msje").empty();
+            $("#msje").append(" El Punto de emision debe tener 3 numeros enteros");
+        } else if( secuencia.match(/^[0-9]{9}$/) == null ){
+            $(".error").show();
+            $("#msje").empty();
+            $("#msje").append(" La Secuencia debe tener 9 numeros enteros");
+        } else {
+
+            $.ajax({
+                type:"POST",
+                url:"/configuracion/actualizar",
+                data:{
+                    'establecimiento': establecimiento,
+                    'puntoEmision': puntoEmision,
+                    'secuencia': secuencia,
+                },
+                success: function(datos){
+                    $(".error").hide();
+                    $(".listo").show();
+                    $("#mensaje").empty();
+                    $("#mensaje").append(" Se actualizaron los campos");
+                }
+            });
+        }
+    }
+
+
 </script>
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>

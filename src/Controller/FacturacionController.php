@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Entity\Producto;
 use App\Entity\Cliente;
+use App\Entity\Empresa;
+use App\Entity\Configuracion;
 use Doctrine\ORM\EntityManagerInterface;
 
 
@@ -19,9 +21,118 @@ class FacturacionController extends AbstractController
      */
     public function index()
     {
+
+        $em = $this->getDoctrine()->getManager();
+        $ConfRepo = $em->getRepository(Configuracion::class);
+        $ClienteRepo = $em->getRepository(Cliente::class);
+        $ProductoRepo = $em->getRepository(Producto::class);
+        $EmpresaRepo = $em->getRepository(Empresa::class);
+
+        $clientes = $ClienteRepo->findAll();
+        $productos = $ProductoRepo->findAll();
+        $empresas = $EmpresaRepo->findAll();
+        $configuracion = $ConfRepo->findAll();
+
+        if(count($configuracion) > 0){
+            $registro = $configuracion[0];
+            $establecimiento = $registro->getEstablecimiento();
+            $puntoEmision = $registro->getPuntoEmision();
+            $secuencia = $registro->getSecFactura();
+        } else {
+            $establecimiento = "000";
+            $puntoEmision = "000";
+            $secuencia = "000";
+        }
+
+
         return $this->render('facturacion/index.html.twig', [
             'controller_name' => 'FacturacionController',
+            'clientes' => $clientes,
+            'establecimiento' => $establecimiento,
+            'puntoEmision' => $puntoEmision,
+            'secuencia' => $secuencia,
+            'empresas' => $empresas,
+            'productos' => $productos
+
         ]);
+    }
+
+
+    /**
+     * @Route("/facturacion/facturar", name="facturar")
+     */
+    public function facturar()
+    {
+
+        $em = $this->getDoctrine()->getManager();
+        $ConfRepo = $em->getRepository(Configuracion::class);
+        $ClienteRepo = $em->getRepository(Cliente::class);
+        $ProductoRepo = $em->getRepository(Producto::class);
+        $EmpresaRepo = $em->getRepository(Empresa::class);
+
+        $clientes = $ClienteRepo->findAll();
+        $productos = $ProductoRepo->findAll();
+        $empresas = $EmpresaRepo->findAll();
+        $configuracion = $ConfRepo->findAll();
+
+        if(count($configuracion) > 0){
+            $registro = $configuracion[0];
+            $establecimiento = $registro->getEstablecimiento();
+            $puntoEmision = $registro->getPuntoEmision();
+            $secuencia = $registro->getSecFactura();
+        } else {
+            $establecimiento = "000";
+            $puntoEmision = "000";
+            $secuencia = "000";
+        }
+
+
+        return $this->render('facturacion/factura.html.twig', [
+            'controller_name' => 'FacturacionController',
+            'clientes' => $clientes,
+            'establecimiento' => $establecimiento,
+            'puntoEmision' => $puntoEmision,
+            'secuencia' => $secuencia,
+            'empresas' => $empresas,
+            'productos' => $productos
+
+        ]);
+    }
+
+
+    /**
+     * @Route("/facturacion/precioStock", name="precio")
+     */
+    public function actualizarPrecioStock()
+    {
+
+
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $data = $request->request;
+
+        $producto_id = $data->get('id');
+        $cantidad_solicitada = $data->get('cantidad');
+        $precio_actualizado = $data->get('nuevoPrecio');
+
+
+        $em = $this->getDoctrine()->getManager();
+        $ProductoRepo = $em->getRepository(Producto::class);
+        $producto = $ProductoRepo->find($producto_id);
+        $stock_anterior = $producto->getStock();
+        $stock_actual = $stock_anterior - $cantidad_solicitada;
+        $producto->setPrecioUnit($precio_actualizado);
+        $producto->setStock($stock_actual);
+        $em->flush();
+
+        $response->setContent(json_encode([
+            'ok' => 'ko',
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+
+       
     }
 
 
@@ -176,9 +287,138 @@ class FacturacionController extends AbstractController
      */
     public function empresas()
     {
+        $repository = $this->getDoctrine()->getRepository(Empresa::class);
+        $empresas = $repository->findAll();
+
         return $this->render('facturacion/empresas.html.twig', [
             'controller_name' => 'FacturacionController',
+            'empresas' => $empresas
         ]);
+    }
+
+
+    /**
+     * @Route("/empresas/nuevaEmpresa", name="nuevoEmpresa")
+     */
+    public function nuevaEmpresa()
+    {
+
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $em = $this->getDoctrine()->getManager();
+        $data = $request->request;
+
+
+        $empresa = new Empresa();
+
+        $empresa->setRuc($data->get('ruc'));
+        $empresa->setRazonSocial($data->get('razonsocial'));
+        $empresa->setDireccion($data->get('direccion'));
+        $em->persist($empresa);
+        $em->flush();
+
+        $response->setContent(json_encode([
+            'id' => $empresa->getId(),
+            'ruc' => $empresa->getRuc(),
+            'razonsocial' => $empresa->getRazonSocial(),
+            'direccion' => $empresa->getDireccion(),
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+
+    /**
+     * @Route("/empresas/verificarRUC", name="verificarRUCEmpresa")
+     */
+    public function verificarEmpresa()
+    {
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $em = $this->getDoctrine()->getManager();
+        $repositorio = $em->getRepository(Empresa::class);
+        $data = $request->request;
+        $ruc = $data->get('ruc');
+        $empresa = $repositorio->findOneBy(['ruc' => $ruc]);
+
+        if (!$empresa) {
+            $msj = 'disponible';
+        } else {
+            if($data->get('id') == $empresa->getId()){
+                $msj = 'disponible';
+            } else {
+                $msj = 'ocupado';    
+            }
+        }
+
+        $response->setContent(json_encode(['msj' => $msj]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+
+    /**
+     * @Route("/empresas/eliminarEmpresa", name="eliminarEmpresa")
+     */
+    public function eliminarEmpresa()
+    {
+
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $em = $this->getDoctrine()->getManager();
+        $repositorio = $em->getRepository(Empresa::class);
+
+        $data = $request->request;
+        $id = $data->get('id');
+        $empresa = $repositorio->find($id);
+
+        $em->remove($empresa);
+        $em->flush();
+
+        $response->setContent(json_encode([
+            'eliminado' => 'ok'
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+
+    /**
+     * @Route("/empresas/editarEmpresa", name="editarEmpresa")
+     */
+    public function editarEmpresa()
+    {
+
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $em = $this->getDoctrine()->getManager();
+        $data = $request->request;
+
+        $empresa = $em->getRepository(Empresa::class)->find($data->get('id'));
+        $msj = "";
+
+        if (!$empresa) {
+            $msj = 'err';
+        } else {
+            $empresa->setRuc($data->get('ruc'));
+            $empresa->setRazonSocial($data->get('razonsocial'));
+            $empresa->setDireccion($data->get('direccion'));
+            $em->flush();
+            $msj = 'Creado con exito';
+        }
+
+        $response->setContent(json_encode([
+            'id' => $empresa->getId(),
+            'ruc' => $empresa->getRuc(),
+            'razonsocial' => $empresa->getRazonSocial(),
+            'direccion' => $empresa->getDireccion(),
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
     }
 
 
@@ -203,9 +443,66 @@ class FacturacionController extends AbstractController
      */
     public function configuracion()
     {
+        $em = $this->getDoctrine()->getManager();
+        $repositorio = $em->getRepository(Configuracion::class);
+        $configuracion = $repositorio->findAll();
+        if(count($configuracion) > 0){
+            $registro = $configuracion[0];
+            $establecimiento = $registro->getEstablecimiento();
+            $puntoEmision = $registro->getPuntoEmision();
+            $secuencia = $registro->getSecFactura();
+        } else {
+            $establecimiento = 0;
+            $puntoEmision = 0;
+            $secuencia = 0;
+        }
+
         return $this->render('facturacion/configuracion.html.twig', [
             'controller_name' => 'FacturacionController',
+            'establecimiento' => $establecimiento,
+            'puntoEmision' => $puntoEmision,
+            'secuencia' => $secuencia,
+            
         ]);
+    }
+
+
+    /**
+     * @Route("/configuracion/actualizar", name="actualizarConfig")
+     */
+    public function actualizarConfiguracion()
+    {
+        
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $em = $this->getDoctrine()->getManager();
+        $repositorio = $em->getRepository(Configuracion::class);
+        $data = $request->request;
+
+        $id = $data->get('id');
+        $configuracion = $repositorio->findAll();
+        if(count($configuracion) > 0){
+            $registro = $configuracion[0];
+            $registro->setEstablecimiento($data->get('establecimiento'));
+            $registro->setPuntoEmision($data->get('puntoEmision'));
+            $registro->setSecFactura($data->get('secuencia'));
+            $em->persist($registro);
+            $em->flush();
+        } else {
+            $registro = new Configuracion();
+            $registro->setEstablecimiento($data->get('establecimiento'));
+            $registro->setPuntoEmision($data->get('puntoEmision'));
+            $registro->setSecFactura($data->get('secuencia'));
+            $em->persist($registro);
+            $em->flush();
+        }
+
+        $response->setContent(json_encode([
+            'eliminado' => $registro
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
     }
 
 
