@@ -10,6 +10,10 @@ function filtrar(){
         }
         if(cliente != 'Todos'){
             table.columns(3).search(cliente).draw();
+        } else {
+            var table = $('#facturas').DataTable();
+            table.destroy();
+            table = $('#facturas').DataTable();
         }
         if(fechainicio != ''){
             table.draw();
@@ -47,6 +51,9 @@ function filtrar(){
             $("#filtros").slideUp();
             $("#btn-filtro").empty();
             $("#btn-filtro").append("Mostrar Filtros");
+            var table = $('#facturas').DataTable();
+            table.destroy();
+            table = $('#facturas').DataTable();
         } else {
             $("#filtros").slideDown();
             $("#btn-filtro").empty();
