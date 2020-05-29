@@ -453,14 +453,7 @@
           },
           success: function(datos){
 
-             $.ajax({
-                  type:"POST",
-                  url:"/facturacion/cod"+datos['factura_id']+"/imprimir",
-                  success: function(datos){
-                    $(location).attr('href', '/facturacion/cod'+datos['factura_id']);
-                  }
-              });
-
+            $(location).attr('href', '/facturacion/cod'+datos['factura_id']+'/imprimir');
             
           }
       });

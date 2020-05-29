@@ -167,15 +167,7 @@
 	$(document).ready(function() {
 
         $('.btn-imprimir').on('click', function(){
-
-            $.ajax({
-                  type:"POST",
-                  url:"/facturacion/cod{{ factura.id }}/imprimir",
-                  success: function(datos){
-                    console.log(datos);
-
-                  }
-              });
+            $(location).attr('href', '/facturacion/cod{{ factura.id }}/imprimir');
 
         });
         

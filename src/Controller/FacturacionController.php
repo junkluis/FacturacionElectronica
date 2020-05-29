@@ -248,12 +248,7 @@ class FacturacionController extends AbstractController
         ]);
 
 
-        $response->setContent(json_encode([
-            'msj' => 'ok'
-        ]));
-        $response->headers->set('Content-Type', 'application/json');
-
-        return $response;
+        return $this->redirectToRoute('revisarFactura', ['facturaid' => $factura->getId()]);
 
     }
 
