@@ -2,13 +2,6 @@
 
 Proyecto desarrollado en Symfony 5, alojado en heroku.com
 
-## 
-
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
-
-```bash
-pip install foobar
-```
 
 ## Herramientas utilizadas
 
@@ -19,8 +12,8 @@ pip install foobar
 * JQuery
 * AJAX
 
-## Base de datos
-![GitHub Logo](/public/images/wetrusted.jpg)
+## Base de datos / Entidades
+![GitHub Logo](/public/images/relacionentidad.png)
 
 
 ## Autor
