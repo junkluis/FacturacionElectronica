@@ -5,6 +5,7 @@ function filtrar(){
         fechainicio = $('#fechainicio').val();
         fechafinal = $('#fechafinal').val();
 
+
         if(factura != ''){
             table.columns(1).search(factura).draw();
         }
@@ -14,6 +15,9 @@ function filtrar(){
             var table = $('#facturas').DataTable();
             table.destroy();
             table = $('#facturas').DataTable();
+            if(factura != ''){
+                table.columns(1).search(factura).draw();
+            }
         }
         if(fechainicio != ''){
             table.draw();

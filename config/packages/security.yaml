@@ -18,7 +18,7 @@ security:
             anonymous: lazy
             provider: app_user_provider
             logout:
-                path: "/"
+                path: app_logout
             guard:
                 authenticators:
                     - App\Security\LoginFormAuthenticator

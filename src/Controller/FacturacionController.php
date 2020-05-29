@@ -21,11 +21,32 @@ use Dompdf\Options;
 
 class FacturacionController extends AbstractController
 {
+
+    /***********************************************************
+    *                    MODULO DE FACTURA                     *
+    ************************************************************/
+
+    /**
+     * @Route("/", name="")
+     */
+    public function inicio()
+    {
+        /*
+        *  Redireccion a la pagina inicial
+        */
+        return $this->redirectToRoute('facturacion');
+    }
+
+
+
     /**
      * @Route("/facturacion", name="facturacion")
      */
     public function index()
     {
+        /*
+        *  Pagina de inicio mostrando las facturas
+        */
 
         $em = $this->getDoctrine()->getManager();
         $ConfRepo = $em->getRepository(Configuracion::class);
@@ -72,7 +93,6 @@ class FacturacionController extends AbstractController
      */
     public function facturar()
     {
-
         $em = $this->getDoctrine()->getManager();
         $ConfRepo = $em->getRepository(Configuracion::class);
         $ClienteRepo = $em->getRepository(Cliente::class);
@@ -194,8 +214,6 @@ class FacturacionController extends AbstractController
      */
     public function revisarFactura(int $facturaid)
     {
-
-
         $em = $this->getDoctrine()->getManager();
         $factura = $em->getRepository(Factura::class)->find($facturaid);
         $detalles = $factura->getDetalleFacturas();
@@ -206,6 +224,7 @@ class FacturacionController extends AbstractController
             'detalles'=> $detalles
         ]);
     }
+
 
      /**
      * @Route("/facturacion/cod{facturaid}/imprimir", name="imprimir", requirements={"facturaid"="\d+"})
@@ -258,7 +277,6 @@ class FacturacionController extends AbstractController
     }
 
 
-
     /**
      * @Route("/facturacion/eliminarFactura", name="eliminarFactura")
      */
@@ -286,6 +304,11 @@ class FacturacionController extends AbstractController
     }
 
 
+
+    /***********************************************************
+    *                    MODULO DEL CLIENTE                    *
+    ************************************************************/
+
     /**
      * @Route("/clientes", name="clientes")
      */
@@ -298,9 +321,6 @@ class FacturacionController extends AbstractController
             'clientes' => $clientes
         ]);
     }
-
-
-    
 
 
     /**
@@ -434,6 +454,10 @@ class FacturacionController extends AbstractController
         return $response;
     }
 
+
+    /***********************************************************
+    *                    MODULO DE EMPRESAS                    *
+    ************************************************************/
 
     /**
      * @Route("/empresas", name="empresas")
@@ -575,6 +599,10 @@ class FacturacionController extends AbstractController
     }
 
 
+    /***********************************************************
+    *                    MODULO DE PRODUCTOS                   *
+    ************************************************************/
+
     /**
      * @Route("/productos", name="productos")
      */
@@ -588,74 +616,6 @@ class FacturacionController extends AbstractController
             'controller_name' => 'FacturacionController',
             'productos' => $products
         ]);
-    }
-
-
-    /**
-     * @Route("/configuracion", name="configuracion")
-     */
-    public function configuracion()
-    {
-        $em = $this->getDoctrine()->getManager();
-        $repositorio = $em->getRepository(Configuracion::class);
-        $configuracion = $repositorio->findAll();
-        if(count($configuracion) > 0){
-            $registro = $configuracion[0];
-            $establecimiento = $registro->getEstablecimiento();
-            $puntoEmision = $registro->getPuntoEmision();
-            $secuencia = $registro->getSecFactura();
-        } else {
-            $establecimiento = 0;
-            $puntoEmision = 0;
-            $secuencia = 0;
-        }
-
-        return $this->render('facturacion/configuracion.html.twig', [
-            'controller_name' => 'FacturacionController',
-            'establecimiento' => $establecimiento,
-            'puntoEmision' => $puntoEmision,
-            'secuencia' => $secuencia,
-            
-        ]);
-    }
-
-
-    /**
-     * @Route("/configuracion/actualizar", name="actualizarConfig")
-     */
-    public function actualizarConfiguracion()
-    {
-        
-        $response = new Response();
-        $request = Request::createFromGlobals();
-        $em = $this->getDoctrine()->getManager();
-        $repositorio = $em->getRepository(Configuracion::class);
-        $data = $request->request;
-
-        $id = $data->get('id');
-        $configuracion = $repositorio->findAll();
-        if(count($configuracion) > 0){
-            $registro = $configuracion[0];
-            $registro->setEstablecimiento($data->get('establecimiento'));
-            $registro->setPuntoEmision($data->get('puntoEmision'));
-            $registro->setSecFactura($data->get('secuencia'));
-            $em->persist($registro);
-            $em->flush();
-        } else {
-            $registro = new Configuracion();
-            $registro->setEstablecimiento($data->get('establecimiento'));
-            $registro->setPuntoEmision($data->get('puntoEmision'));
-            $registro->setSecFactura($data->get('secuencia'));
-            $em->persist($registro);
-            $em->flush();
-        }
-
-        $response->setContent(json_encode([
-            'eliminado' => $registro
-        ]));
-        $response->headers->set('Content-Type', 'application/json');
-
-        return $response;
     }
 
 
@@ -758,35 +718,77 @@ class FacturacionController extends AbstractController
     }
 
 
-    /**
-     * @Route("/ajaxtest", name="ajaxtest")
-     */
-    public function ajaxtest()
-    {
+    /***********************************************************
+    *                    MODULO DE CONFIGURACION               *
+    ************************************************************/
 
+
+    /**
+     * @Route("/configuracion", name="configuracion")
+     */
+    public function configuracion()
+    {
+        $em = $this->getDoctrine()->getManager();
+        $repositorio = $em->getRepository(Configuracion::class);
+        $configuracion = $repositorio->findAll();
+        if(count($configuracion) > 0){
+            $registro = $configuracion[0];
+            $establecimiento = $registro->getEstablecimiento();
+            $puntoEmision = $registro->getPuntoEmision();
+            $secuencia = $registro->getSecFactura();
+        } else {
+            $establecimiento = 0;
+            $puntoEmision = 0;
+            $secuencia = 0;
+        }
+
+        return $this->render('facturacion/configuracion.html.twig', [
+            'controller_name' => 'FacturacionController',
+            'establecimiento' => $establecimiento,
+            'puntoEmision' => $puntoEmision,
+            'secuencia' => $secuencia,
+            
+        ]);
+    }
+
+
+    /**
+     * @Route("/configuracion/actualizar", name="actualizarConfig")
+     */
+    public function actualizarConfiguracion()
+    {
+        
         $response = new Response();
         $request = Request::createFromGlobals();
         $em = $this->getDoctrine()->getManager();
-
+        $repositorio = $em->getRepository(Configuracion::class);
         $data = $request->request;
 
-        $producto = new Producto();
-        $producto->setCodigo($data->get('codigo'));
-        $producto->setDetalle($data->get('detalle'));
-        $producto->setPrecioUnit($data->get('precio'));
-        $producto->setStock($data->get('stock'));
-        $em->persist($producto);
-        $em->flush();
+        $id = $data->get('id');
+        $configuracion = $repositorio->findAll();
+        if(count($configuracion) > 0){
+            $registro = $configuracion[0];
+            $registro->setEstablecimiento($data->get('establecimiento'));
+            $registro->setPuntoEmision($data->get('puntoEmision'));
+            $registro->setSecFactura($data->get('secuencia'));
+            $em->persist($registro);
+            $em->flush();
+        } else {
+            $registro = new Configuracion();
+            $registro->setEstablecimiento($data->get('establecimiento'));
+            $registro->setPuntoEmision($data->get('puntoEmision'));
+            $registro->setSecFactura($data->get('secuencia'));
+            $em->persist($registro);
+            $em->flush();
+        }
 
         $response->setContent(json_encode([
-            'data' => $data,
+            'eliminado' => $registro
         ]));
         $response->headers->set('Content-Type', 'application/json');
 
-        
-
         return $response;
-        
-
     }
+
+
 }
