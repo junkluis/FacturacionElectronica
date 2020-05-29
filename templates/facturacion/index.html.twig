@@ -72,7 +72,7 @@
             <div class="col-md-3">
                 <div class="form-group">
                     <label for="cliente"><b>Cliente</b></label>
-                    <select class="selectpicker" data-show-subtext="true" data-live-search="true" >
+                    <select id="filtro-clientes" class="selectpicker" data-show-subtext="true" data-live-search="true" >
                         <option data-subtext=""> Todos </option>
                         {% for cliente in  clientes %}
                             <option data-subtext="{{ cliente.ciRuc }}">{{ cliente.razonSocial }} </option>
@@ -151,52 +151,96 @@
 
 
 <script type="text/javascript">
+
 	$(document).ready(function() {
 	    $('#facturas').DataTable( {
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json'
             }
         });
+
+
+        $.fn.dataTable.ext.search.push(
+            function( settings, data, dataIndex ) {
+                var min = $('#fechainicio').val();
+                var max = $('#fechafinal').val();
+
+                var fecha = data[0]  || 0;
+                var componentes = fecha.split("/");
+                var fecha_registro = new Date(componentes[2], (componentes[0]-1), componentes[1]);
+
+                min = min.split("/");
+                max = max.split("/");
+
+                if(min.length == 1 && min.length == 1){
+                    if(min[0] == "" && max[0] == ""){
+                        return true;    
+                    }
+                }
+         
+                if ( min.length == 3 || max.length == 3 )
+                {
+                    var fecha_min = null;
+                    var fecha_max = null;
+
+                    if( min.length == 3 ){
+                        fecha_min = new Date(min[2], (min[0]-1), min[1]);
+                    } 
+                    if( max.length == 3 ){
+                        fecha_max = new Date(max[2], (max[0]-1), max[1]);
+                    }
+
+                    if( fecha_min <= fecha_registro && fecha_max == null ||
+                        fecha_min == null && fecha_max >= fecha_registro ||
+                        fecha_min <= fecha_registro && fecha_max >= fecha_registro ){
+                        return true;
+                    }
+                }
+                return false;
+            }
+        );
+
+
+
+
+
         $('#fechainicio').datepicker({
             uiLibrary: 'bootstrap'
         });
         $('#fechafinal').datepicker({
             uiLibrary: 'bootstrap'
         });
-        $('#fechaemision').datepicker({
-            uiLibrary: 'bootstrap'
-        });
         $('select.selectpicker').on('change', function(){
-            seleccionarProducto($(this));
+            if($(this).attr('id') == 'filtro-clientes'){
+                filtrar();
+            }
         });
-        $('input.Cantidad').on('change', function(){
-            cambiarCantidad($(this));
-        });
-        $('.agregarProducto').on('click', function(){
-            agregarProducto();
-            console.log($("#detalles"));
-        })
 
         $('.registrar-factura').on('click', function(){
             $(location).attr('href', 'facturacion/facturar');
         });
 
         $('.btn-revisar').on('click', function(){
-            console.log(this);
             factura_id = $(this).attr('data-id');
             $(location).attr('href', 'facturacion/cod'+factura_id);
         })
 
         $('.btn-imprimir').on('click', function(){
-            console.log(this);
             factura_id = $(this).attr('data-id');
             $(location).attr('href', 'facturacion/cod'+factura_id+'/imprimir');
         })
 
         $('.btn-eliminar').on('click', function(){
-            console.log(this);
             factura_id = $(this).attr('data-id');
             alertaEliminar(factura_id);
+        });
+
+        $('#fechainicio').on('change', function(){
+            filtrar();
+        })
+
+        $('#fechafinal').on('change', function(){
+            filtrar();
         })
 
         $(".eliminar-definitivo").click(function(){
@@ -204,7 +248,37 @@
               eliminarFactura(id);
           });
 
+        $('#nfactura').keyup( function(event) {
+            filtrar();
+        });
+
+        //filtro-clientes
+        //fechainicio
+        //fechafinal
+
 	} );
+
+
+    function filtrar(){
+        var table = $('#facturas').DataTable();
+        factura = $('#nfactura').val();
+        cliente = $('#filtro-clientes').val();
+        fechainicio = $('#fechainicio').val();
+        fechafinal = $('#fechafinal').val();
+
+        if(factura != ''){
+            table.columns(1).search(factura).draw();
+        }
+        if(cliente != 'Todos'){
+            table.columns(3).search(cliente).draw();
+        }
+        if(fechainicio != ''){
+            table.draw();
+        }
+        if(fechafinal != ''){
+            table.draw();
+        }
+    }
 
     
     function alertaEliminar(id){
@@ -222,7 +296,6 @@
             },
             success: function(datos){
               row = $(".id-factura[value='"+id+"']").parent();
-              console.log(row);
               table = $('#facturas').DataTable();
               table.row( row ).remove().draw();
             }

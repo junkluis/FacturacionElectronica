@@ -69,8 +69,16 @@
         </div>
 
         <div class="form">
+          
+
          <form>
+          <div class="row">
+              <div class="col-md-12 error-principal" style="display:none">
+                <div id="msjError"><i class="fas fa-exclamation-circle"></i><span id="msje-error-principal"></span></div>
+              </div>
+            </div>
           <div class="modal-body">
+
               <div class="form-row">
                 <div class="form-group col-md-6">
                   <label for="razonSocial"><b>N de Factura</b></label>
@@ -265,6 +273,7 @@
         });
 
 
+
         hoy = new Date();
         fecha = (hoy.getMonth()+1) + "/" + hoy.getDate() + "/" + hoy.getFullYear();
         $("#fechaemision").val(fecha);
@@ -434,29 +443,42 @@
       impuestos = $('#valor-impuesto').text().substr(1);
       total = $('#valor-total').text().substr(1);
 
-      console.log(fecha_campos);
+      
 
-      $.ajax({
-          type:"POST",
-          url:"/facturacion/registrarFactura",
-          data:{
-            'carrito_compras': carrito,
-            'empresa': empresa,
-            'cliente': cliente,
-            'establecimiento': establecimiento,
-            'ptoEmision': ptoEmision,
-            'secFactura': secuencia,
-            'fecha': fecha_campos,
-            'subtotal': subtotal,
-            'impuestos': impuestos,
-            'total': total
-          },
-          success: function(datos){
+      if(carrito.length == 0){
+        $(".error-principal").show();
+        $("#msje-error-principal").empty();
+        $("#msje-error-principal").append(" Agrege un producto a la factura");
 
-            $(location).attr('href', '/facturacion/cod'+datos['factura_id']);
-            
-          }
-      });
+      } else if( fechaEmision == '' ){
+        $(".error-principal").show();
+        $("#msje-error-principal").empty();
+        $("#msje-error-principal").append(" Seleccione una fecha de emision");
+      } else {
+        $.ajax({
+            type:"POST",
+            url:"/facturacion/registrarFactura",
+            data:{
+              'carrito_compras': carrito,
+              'empresa': empresa,
+              'cliente': cliente,
+              'establecimiento': establecimiento,
+              'ptoEmision': ptoEmision,
+              'secFactura': secuencia,
+              'fecha': fecha_campos,
+              'subtotal': subtotal,
+              'impuestos': impuestos,
+              'total': total
+            },
+            success: function(datos){
+
+              $(location).attr('href', '/facturacion/cod'+datos['factura_id']);
+              
+            }
+        });
+      }
+
+      
       
     }
 
