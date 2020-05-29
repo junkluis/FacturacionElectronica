@@ -51,7 +51,7 @@ function filtrar(){
             $("#filtros").slideDown();
             $("#btn-filtro").empty();
             $("#btn-filtro").append("Esconder Filtros");
-            table = $('#facturas').DataTable();
-            table.search().draw();
+            var table = $('#facturas').DataTable();
+            table.columns().search().draw();
         }
     }
