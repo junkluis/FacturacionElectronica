@@ -7,10 +7,10 @@ function filtrar(){
 
         if(factura != ''){
             table.columns(1).search(factura).draw();
-        } else { table.search().draw(); }
+        }
         if(cliente != 'Todos'){
             table.columns(3).search(cliente).draw();
-        } else { table.search().draw(); }
+        }
         if(fechainicio != ''){
             table.draw();
         }
@@ -51,5 +51,7 @@ function filtrar(){
             $("#filtros").slideDown();
             $("#btn-filtro").empty();
             $("#btn-filtro").append("Esconder Filtros");
+            table = $('#facturas').DataTable();
+            table.search().draw();
         }
     }
