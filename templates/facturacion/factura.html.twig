@@ -452,7 +452,16 @@
             'total': total
           },
           success: function(datos){
-            $(location).attr('href', '/facturacion/cod'+datos['factura_id']);
+
+             $.ajax({
+                  type:"POST",
+                  url:"/facturacion/cod"+datos['factura_id']+"/imprimir",
+                  success: function(datos){
+                    $(location).attr('href', '/facturacion/cod'+datos['factura_id']);
+                  }
+              });
+
+            
           }
       });
       

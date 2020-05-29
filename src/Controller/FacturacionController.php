@@ -224,8 +224,9 @@ class FacturacionController extends AbstractController
         $dompdf = new Dompdf($pdfOptions);
         
         // Retrieve the HTML generated in our twig file
-        $html = $this->renderView('facturacion/test.html.twig', [
-            'title' => "Welcome to our PDF Test"
+        $html = $this->renderView('facturacion/pdfTemplate.html.twig', [
+            'factura' => $factura,
+            'detalles' => $detalles,
         ]);
         
         // Load HTML to Dompdf
@@ -238,7 +239,7 @@ class FacturacionController extends AbstractController
         $dompdf->render();
 
         // Output the generated PDF to Browser (force download)
-        $dompdf->stream("mypdf.pdf", [
+        $dompdf->stream("Factura.pdf", [
             "Attachment" => true
         ]);
 
@@ -249,44 +250,6 @@ class FacturacionController extends AbstractController
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
-
-        /*
-
-        $response = new Response();
-        $em = $this->getDoctrine()->getManager();
-        $factura = $em->getRepository(Factura::class)->find($facturaid);
-        $detalles = $factura->getDetalleFacturas();
-
-        $em = $this->getDoctrine()->getManager();
-        $factura = $em->getRepository(Factura::class)->find($facturaid);
-        $detalles = $factura->getDetalleFacturas();
-        
-
-
-        $pdfOptions = new Options();
-        $pdfOptions->set('defaultFont', 'Arial');
-        $pdfOptions->set('isHtml5ParserEnabled', true);
-        $dompdf = new Dompdf($pdfOptions);
-        $html = $this->renderView('facturacion/pdfTemplate.html.twig', [
-            'factura'=> $factura,
-            'detalles' => $detalles
-        ]);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-        $dompdf->stream("FacturaNo.pdf", [
-            "Attachment" => true
-        ]);
-
-        $response->setContent(json_encode([
-            'msj' => 'ok'
-        ]));
-        $response->headers->set('Content-Type', 'application/json');
-
-        return $response;
-        */
-
-        
 
     }
 
