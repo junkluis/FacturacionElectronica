@@ -1,0 +1,8 @@
+knp_snappy:
+  process_timeout: 60
+  pdf:
+    enabled: true
+    binary: ‘%env(WKHTMLTOPDF_LIBRARY)%’
+    options:
+      - { name: ‘viewport-size’, value: ‘1024x768’ }
+      - { name: ‘page-size’, value: ‘A4’ }

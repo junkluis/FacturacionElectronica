@@ -10,7 +10,7 @@
 <style type="text/css">
     .nav-link{font-size:20px !important;}
     .dataTables_filter {display: none;}
-    .btn-success, .btn-secondary{margin-top: 30px;}
+    .btn-top{margin-top: 30px;}
     .div-btn{text-align: end;}
     #msjError{background-color: #ffe4e4; margin:10px;padding:10px; width: 100%;color:red;}
     .imp{font-size: 20px;}
@@ -19,6 +19,7 @@
     .number{text-align: right;}
     .registros{border-bottom: 1px solid;}
     .eliminarRow{color: red;font-size: 22px;}
+    .btn-outline-danger{border-color: #fafafa  !important;}
 </style>
 {% endblock %}
 
@@ -50,17 +51,19 @@
 
 
 {% block body %}
+<div id="productos-options" style="display:none">
+</div>
 <section class="sample-text-area" style="margin-top: 40px;">
 	<div class="container box_1170">
 		
         <div class="row">
             <div class="col-6"><h1><i class="fas fa-file-invoice"></i> Registrar Factura</h1></div>
             <div class="col-6 div-btn">
-                <button type="button" class="btn btn-secondary" onclick="mostrarFiltros()">
-                    <i class="fas fa-filter"></i> <span id="btn-filtro">Imprimir</span>
+                <button type="button" class="btn btn-light btn-top btn-cancelar" >
+                  <span id="btn-filtro">Cancelar</span>
                 </button> &nbsp;
-                <button type="button" class="btn btn-success" onclick="abrirModalFactura()">
-                    <i class="fas fa-plus"></i> Guardar
+                <button type="button" class="btn btn-success btn-top btn-registrar" >
+                    <i class="fas fa-plus"></i> Registrar
                 </button>
             </div>
         </div>
@@ -71,7 +74,7 @@
               <div class="form-row">
                 <div class="form-group col-md-6">
                   <label for="razonSocial"><b>N de Factura</b></label>
-                  <div>{{ establecimiento }}-{{ puntoEmision }}-{{ secuencia }}</div>
+                  <div><span id="establecimiento">{{ establecimiento }}</span>-<span id="ptoEmision">{{ puntoEmision }}</span>-<span id="secuencia">{{ secuencia }}</span> <span style="margin-left:20px; font-size:12px"><a href="/configuracion">(Cambiar)</a></span></div>
                 </div>
                 <div class="form-group col-md-6">
                   <label for="ruc"><b>Fecha de Emision</b></label>
@@ -83,7 +86,7 @@
                   <label for="razonSocial"><b>Empresa emisora</b></label>
                   <select id="empresa-emisora" class="selectpicker" data-show-subtext="true" data-live-search="true" >
                         {% for empresa in  empresas %}
-                            <option data-subtext="{{ empresa.ruc }}">{{ empresa.razonSocial }} </option>
+                            <option value="{{ empresa.id }}" data-subtext="{{ empresa.ruc }}">{{ empresa.razonSocial }} </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -91,7 +94,7 @@
                   <label for="ruc"><b>Cliente</b></label>
                   <select id="cliente-factura" class="selectpicker" data-show-subtext="true" data-live-search="true" >
                         {% for cliente in  clientes %}
-                            <option data-subtext="{{ cliente.ciRuc }}">{{ cliente.razonSocial }} </option>
+                            <option value="{{ cliente.id }}" data-subtext="{{ cliente.ciRuc }}">{{ cliente.razonSocial }} </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -119,23 +122,27 @@
               <div class="form-row">
                 <div class="form-group col-md-7"></div>
                 <div class="form-group col-md-2 factTitulo"><b>SubTotal:</b></div>
-                <div class="form-group col-md-2 factTitulo">$00.00</div>
+                <div id="valor-subtotal" class="form-group col-md-2 factTitulo">$00.00</div>
               </div>
               <div class="form-row">
                 <div class="form-group col-md-7"></div>
-                <div class="form-group col-md-2 factTitulo"><b>Impuesto:</b></div>
-                <div class="form-group col-md-2 factTitulo">$00.00</div>
+                <div class="form-group col-md-2 factTitulo"><b>Impuesto (12%):</b></div>
+                <div id="valor-impuesto"  class="form-group col-md-2 factTitulo">$00.00</div>
               </div>
               <div class="form-row">
                 <div class="form-group col-md-7"></div>
                 <div class="form-group col-md-2 factTitulo"><b>TOTAL:</b></div>
-                <div class="form-group col-md-2 factTitulo">$00.00</div>
+                <div id="valor-total" class="form-group col-md-2 factTitulo">$00.00</div>
               </div>
 
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-dismiss="modal">Cerrar</button>
-            <button type="button" class="btn btn-primary" id="btn-modal-form" onclick="nuevaEmpresa()">Guardar</button>
+            <button type="button" class="btn btn-light btn-top btn-cancelar">
+                  <span id="btn-filtro">Cancelar</span>
+                </button> &nbsp;
+                <button type="button" class="btn btn-success btn-top btn-registrar">
+                    <i class="fas fa-plus"></i> Registrar
+                </button>
           </div>
       </form>
     </div>
@@ -159,7 +166,7 @@
                 <div class="form-group col-md-12">
                   <label for="codigo"><b>Producto</b></label>
                   <select id="productos" class="selectpicker" data-show-subtext="true" data-live-search="true" >
-                    <option data-subtext=""></option>
+                    <option value="-1" data-subtext="Seleccione un producto"></option>
                         {% for producto in  productos %}
                             {% if producto.stock > 0 %}
                                 <option value="{{ producto.precioUnit }}" data-id="{{ producto.id }}" data-stock="{{ producto.stock }}" data-subtext="{{ producto.codigo }}">{{ producto.detalle }} </option>
@@ -245,6 +252,18 @@
             guardarProducto();
         });
 
+        $(document).on('click', '.eliminarDet', function(){
+            eliminarDetalle(this);
+        });
+
+        $('.btn-registrar').on('click', function(){
+            guardarFactura();
+        });
+
+        $('.btn-cancelar').on('click', function(){
+            $(location).attr('href', '/facturacion');
+        });
+
 
         hoy = new Date();
         fecha = (hoy.getMonth()+1) + "/" + hoy.getDate() + "/" + hoy.getFullYear();
@@ -275,24 +294,29 @@
     }
 
     function agregarProducto(){
+        $("#cantidadPro").val(1);
+        $("#precioPro").val(0);
+        $("span.stock").empty();
+        $("span.subtotal").empty();
+        $("span.stock").append("0");
+        $("span.subtotal").append("00.00");
         $("#ModalProducto").modal('show');
 
     }
 
 
     function guardarProducto(){
+
         opcionSelect = $('#productos.selectpicker').find("option:selected");
-        detalle = $('#productos.selectpicker').val();
+        productoId = opcionSelect.attr("data-id");
+        stock = opcionSelect.attr("data-stock");
+        codigo = opcionSelect.attr("data-stock");
+        detalle = opcionSelect.text();
         cantidad = $("#cantidadPro").val();
         precio = $("#precioPro").val();
         subtotal = parseFloat(precio) * parseFloat(cantidad);
         subtotal = subtotal.toFixed(2);
-        productoId = opcionSelect.attr("data-id");
-        stock = opcionSelect.attr("data-stock");
-        nuevoStock = parseInt(stock) - parseInt(cantidad);
-
-        console.log(cantidad);
-        console.log(stock);
+        
 
         if(parseInt(cantidad) > parseInt(stock)){
             $(".error").show();
@@ -302,42 +326,136 @@
             $(".error").show();
             $("#msje").empty();
             $("#msje").append(" Porfavor ingrese datos validos");
+        } else if(opcionSelect.val() == -1){
+            $(".error").show();
+            $("#msje").empty();
+            $("#msje").append(" Seleccione un producto");
         } else {
-            console.log("nah");
             $(".error").hide();
 
-            $.ajax({
-                type:"POST",
-                url:"/facturacion/precioStock",
-                data:{
-                  'nuevoPrecio': precio,
-                  'cantidad': cantidad,
-                  'id': productoId,
-
-                },
-                success: function(datos){
-
-                    $("#detalles").append('<div class="form-row detalle registros" style="margin-top:5px">'+
+            $("#detalles").append('<div class="form-row detalle registros" id="detalle-'+productoId+'" style="margin-top:5px">'+
                                            '<div class="form-group col-md-5">'+opcionSelect.text()+'</div>'+
                                            '<div class="form-group col-md-2 number">'+precio+'</div>'+
                                            '<div class="form-group col-md-2 number">'+cantidad+'</div>'+
-                                           '<div class="form-group col-md-2 number">'+subtotal+'</div>'+
-                                           '<div class="form-group col-md-1 number"><span class="eliminarRow"><i class="fas fa-minus-circle"></i></div></span>'+
+                                           '<div class="form-group col-md-2 number subtotales">'+subtotal+'</div>'+
+                                           '<div class="form-group col-md-1 number "><button type="button" data-id="'+productoId+'" class="btn btn-outline-danger eliminarDet"><i class="fas fa-minus-circle"></i></button></div>'+
                                          '</div>');
 
-                    $("#ModalProducto").modal('hide');
-                    $('#productos.selectpicker').attr("value", precio);
-                    $('#productos.selectpicker').attr("data-stock", nuevoStock);          
-                }
+            $("#productos-options").append('<div id="producto-'+productoId+'" data-id="'+productoId+
+                                           '" data-precio="'+precio+
+                                           '" data-cantidad="'+cantidad+
+                                           '" data-stock="'+stock+
+                                           '" data-codigo="'+stock+
+                                           '">'+detalle+'</div>');
 
-            });
+            
 
 
+
+
+            $("#ModalProducto").modal('hide');
+
+            opcionSelect.remove();
+            $('#productos.selectpicker').selectpicker('refresh');
+            //opcionSelect.attr("value", precio);
+            //opcionSelect.attr("data-stock", nuevoStock);
+            //$('#productos.selectpicker').selectpicker('refresh');
         }
 
-        
-        
+        actualizarTotales();
 
+    }
+
+
+    function eliminarDetalle(btn){
+      productoId = $(btn).attr("data-id");
+      productoInfo = $("#producto-"+productoId);
+      detalleProducto = $("#detalle-"+productoId);
+      precio = productoInfo.attr("data-precio");
+      id = productoInfo.attr("data-id");
+      stock = productoInfo.attr("data-stock");
+      codigo = productoInfo.attr("data-codigo");
+      detalle = productoInfo.text();
+
+      $('#productos.selectpicker').append('<option value="'+precio+'" data-id="'+id+'" data-stock="'+stock+'" data-subtext="'+codigo+'">'+detalle+' </option>');
+      $('#productos.selectpicker').selectpicker('refresh');
+
+      productoInfo.remove();
+      detalleProducto.remove();
+      actualizarTotales();
+    }
+
+
+    function actualizarTotales(){
+      subtotales = $(".subtotales");
+      subtotal_principal = 0;
+      impuesto = 0;
+      total = 0;
+      
+      $.each(subtotales, function( index, value ) {
+          subtotal_principal += parseFloat($(value).text());
+      });
+      
+      impuesto = subtotal_principal * 0.12;
+      total = subtotal_principal + impuesto;
+
+      $('#valor-subtotal').empty();
+      $('#valor-impuesto').empty();
+      $('#valor-total').empty();
+      $('#valor-subtotal').append("$"+parseFloat(subtotal_principal).toFixed(2));
+      $('#valor-impuesto').append("$"+parseFloat(impuesto).toFixed(2));
+      $('#valor-total').append("$"+parseFloat(total).toFixed(2));
+
+    }
+
+    function guardarFactura(){
+      
+      empresa = $('#empresa-emisora.selectpicker').val();
+      cliente = $('#cliente-factura.selectpicker').val();
+
+      //informacion de los producctos seleccionados
+      productos = $("#productos-options").children();
+      carrito = []      
+      $.each(productos, function(index, value){
+        detalle = {};
+        detalle['productoId'] = $(value).attr("data-id");
+        detalle['precio'] = $(value).attr("data-precio");
+        detalle['cantidad'] = $(value).attr("data-cantidad");
+        carrito.push(detalle);
+      });
+
+      //Datos de factura
+      establecimiento = $('#establecimiento').text();
+      ptoEmision = $('#ptoEmision').text();
+      secuencia = $('#secuencia').text();
+      fechaEmision = $('#fechaemision').val();
+      fecha_campos = fechaEmision.split("/");
+      subtotal = $('#valor-subtotal').text().substr(1);
+      impuestos = $('#valor-impuesto').text().substr(1);
+      total = $('#valor-total').text().substr(1);
+
+      console.log(fecha_campos);
+
+      $.ajax({
+          type:"POST",
+          url:"/facturacion/registrarFactura",
+          data:{
+            'carrito_compras': carrito,
+            'empresa': empresa,
+            'cliente': cliente,
+            'establecimiento': establecimiento,
+            'ptoEmision': ptoEmision,
+            'secFactura': secuencia,
+            'fecha': fecha_campos,
+            'subtotal': subtotal,
+            'impuestos': impuestos,
+            'total': total
+          },
+          success: function(datos){
+            $(location).attr('href', '/facturacion/cod'+datos['factura_id']);
+          }
+      });
+      
     }
 
 </script>

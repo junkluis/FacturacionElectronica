@@ -10,7 +10,12 @@ use App\Entity\Producto;
 use App\Entity\Cliente;
 use App\Entity\Empresa;
 use App\Entity\Configuracion;
+use App\Entity\Factura;
+use App\Entity\DetalleFactura;
 use Doctrine\ORM\EntityManagerInterface;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
 
 
 
@@ -101,38 +106,188 @@ class FacturacionController extends AbstractController
 
 
     /**
-     * @Route("/facturacion/precioStock", name="precio")
+     * @Route("/facturacion/registrarFactura", name="registrarFactura")
      */
-    public function actualizarPrecioStock()
+    public function registrarFactura()
+    {
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $data = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $PorductoRepo = $em->getRepository(Producto::class);
+
+        $carrito_compras = $data->get('carrito_compras');
+
+        foreach ($carrito_compras as $compra) {
+            $id = intval($compra['productoId']);
+            $producto = $PorductoRepo->find($id);
+            $producto->setPrecioUnit(floatval($compra['precio']));
+            $nuevo_stock = $producto->getStock() - intval($compra['cantidad']);
+            $producto->setStock($nuevo_stock);
+            $em->flush();
+        }
+
+        //Buscar empresa y cliente
+        $empresa_id = intval($data->get('empresa'));
+        $cliente_id = intval($data->get('cliente'));
+        $empresa = $em->getRepository(Empresa::class)->find($empresa_id);
+        $cliente = $em->getRepository(Cliente::class)->find($cliente_id);
+
+        $fecha = $data->get('fecha');
+        $fecha_emision = new \DateTime($fecha[2].'-'.$fecha[0].'-'.$fecha[1]);
+
+        //Crear nueva factura
+        $nueva_factura = new Factura();
+        $nueva_factura->setEstablecimiento($data->get('establecimiento'));
+        $nueva_factura->setPuntoEmision($data->get('ptoEmision'));
+        $nueva_factura->setSecFactura($data->get('secFactura'));
+        $nueva_factura->setEmpresa($empresa);
+        $nueva_factura->setCliente($cliente);
+        $nueva_factura->setFecha($fecha_emision);
+        $nueva_factura->setSubtotal($data->get('subtotal'));
+        $nueva_factura->setImpuestos($data->get('impuestos'));
+        $nueva_factura->setTotal($data->get('total'));
+
+        $em->persist($nueva_factura);
+        $em->flush();
+
+        //aumentar la secuencia
+        $config = $em->getRepository(Configuracion::class)->findAll();
+        $registro = $config[0];
+        $secuencia_actual = intval($registro->getSecFactura());
+        $nueva_secuencia = strval($secuencia_actual+1);
+        $len_faltante = 9 - strlen($nueva_secuencia);
+        if($len_faltante > 0){
+            for ($i = 1; $i <= $len_faltante; $i++) {
+                $nueva_secuencia = '0'.$nueva_secuencia;
+            }
+        }
+        $registro->setSecFactura($nueva_secuencia);
+        $em->flush();
+
+
+        //Registrar los detalles
+        foreach ($carrito_compras as $compra) {
+            $id = intval($compra['productoId']);
+            $producto = $PorductoRepo->find($id);
+            $detalle = new DetalleFactura();
+            $detalle->setFactura($nueva_factura);
+            $detalle->setProducto($producto);
+            $detalle->setCantidad(intval($compra['cantidad']));
+            $em->persist($detalle);
+            $em->flush();
+        }
+        
+        $response->setContent(json_encode(['factura_id' => $nueva_factura->getId()]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+
+    /**
+     * @Route("/facturacion/cod{facturaid}", name="revisarFactura", requirements={"facturaid"="\d+"})
+     */
+    public function revisarFactura(int $facturaid)
+    {
+
+
+        $em = $this->getDoctrine()->getManager();
+        $factura = $em->getRepository(Factura::class)->find($facturaid);
+        $detalles = $factura->getDetalleFacturas();
+
+        return $this->render('facturacion/revisarFactura.html.twig', [
+            'controller_name' => 'FacturacionController',
+            'factura' => $factura,
+            'detalles'=> $detalles
+        ]);
+    }
+
+     /**
+     * @Route("/facturacion/cod{facturaid}/imprimir", name="imprimir", requirements={"facturaid"="\d+"})
+     */
+    public function imprimir(int $facturaid)
     {
 
 
         $response = new Response();
-        $request = Request::createFromGlobals();
-        $data = $request->request;
-
-        $producto_id = $data->get('id');
-        $cantidad_solicitada = $data->get('cantidad');
-        $precio_actualizado = $data->get('nuevoPrecio');
-
-
         $em = $this->getDoctrine()->getManager();
-        $ProductoRepo = $em->getRepository(Producto::class);
-        $producto = $ProductoRepo->find($producto_id);
-        $stock_anterior = $producto->getStock();
-        $stock_actual = $stock_anterior - $cantidad_solicitada;
-        $producto->setPrecioUnit($precio_actualizado);
-        $producto->setStock($stock_actual);
-        $em->flush();
+        $factura = $em->getRepository(Factura::class)->find($facturaid);
+        $detalles = $factura->getDetalleFacturas();
+
+
+        // Configure Dompdf according to your needs
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        
+        // Instantiate Dompdf with our options
+        $dompdf = new Dompdf($pdfOptions);
+        
+        // Retrieve the HTML generated in our twig file
+        $html = $this->renderView('facturacion/test.html.twig', [
+            'title' => "Welcome to our PDF Test"
+        ]);
+        
+        // Load HTML to Dompdf
+        $dompdf->loadHtml($html);
+        
+        // (Optional) Setup the paper size and orientation 'portrait' or 'portrait'
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF to Browser (force download)
+        $dompdf->stream("mypdf.pdf", [
+            "Attachment" => true
+        ]);
+
 
         $response->setContent(json_encode([
-            'ok' => 'ko',
+            'msj' => 'ok'
         ]));
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
 
-       
+        /*
+
+        $response = new Response();
+        $em = $this->getDoctrine()->getManager();
+        $factura = $em->getRepository(Factura::class)->find($facturaid);
+        $detalles = $factura->getDetalleFacturas();
+
+        $em = $this->getDoctrine()->getManager();
+        $factura = $em->getRepository(Factura::class)->find($facturaid);
+        $detalles = $factura->getDetalleFacturas();
+        
+
+
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $pdfOptions->set('isHtml5ParserEnabled', true);
+        $dompdf = new Dompdf($pdfOptions);
+        $html = $this->renderView('facturacion/pdfTemplate.html.twig', [
+            'factura'=> $factura,
+            'detalles' => $detalles
+        ]);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $dompdf->stream("FacturaNo.pdf", [
+            "Attachment" => true
+        ]);
+
+        $response->setContent(json_encode([
+            'msj' => 'ok'
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+        */
+
+        
+
     }
 
 
@@ -148,6 +303,9 @@ class FacturacionController extends AbstractController
             'clientes' => $clientes
         ]);
     }
+
+
+    
 
 
     /**
@@ -517,19 +675,12 @@ class FacturacionController extends AbstractController
         $em = $this->getDoctrine()->getManager();
 
         $data = $request->request;
-
-        if($data->get('impuesto') == "true"){
-            $impuesto = True;
-        } else {
-            $impuesto = False;
-        }
-
         $producto = new Producto();
         $producto->setCodigo($data->get('codigo'));
         $producto->setDetalle($data->get('detalle'));
         $producto->setPrecioUnit($data->get('precio'));
         $producto->setStock($data->get('stock'));
-        $producto->setImpuesto($impuesto);
+        $producto->setImpuesto(True);
         $em->persist($producto);
         $em->flush();
 
@@ -539,7 +690,6 @@ class FacturacionController extends AbstractController
             'detalle' => $producto->getDetalle(),
             'precio' => $producto->getPrecioUnit(),
             'stock' => $producto->getStock(),
-            'impuesto' => $producto->getImpuesto(),
         ]));
         $response->headers->set('Content-Type', 'application/json');
 
@@ -585,12 +735,6 @@ class FacturacionController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $data = $request->request;
 
-        if($data->get('impuesto') == "true"){
-            $impuesto = True;
-        } else {
-            $impuesto = False;
-        }
-
         $producto = $em->getRepository(Producto::class)->find($data->get('id'));
         $msj = "";
 
@@ -601,7 +745,7 @@ class FacturacionController extends AbstractController
             $producto->setDetalle($data->get('detalle'));
             $producto->setPrecioUnit($data->get('precio'));
             $producto->setStock($data->get('stock'));
-            $producto->setImpuesto($impuesto);
+            $producto->setImpuesto(true);
             $em->flush();
             $msj = 'Creado con exito';
         }
@@ -612,7 +756,6 @@ class FacturacionController extends AbstractController
             'detalle' => $producto->getDetalle(),
             'precio' => $producto->getPrecioUnit(),
             'stock' => $producto->getStock(),
-            'impuesto' => $producto->getImpuesto(),
         ]));
         $response->headers->set('Content-Type', 'application/json');
 
@@ -637,7 +780,6 @@ class FacturacionController extends AbstractController
         $producto->setDetalle($data->get('detalle'));
         $producto->setPrecioUnit($data->get('precio'));
         $producto->setStock($data->get('stock'));
-        $producto->setImpuesto($data->get('impuesto'));
         $em->persist($producto);
         $em->flush();
 

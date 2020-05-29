@@ -57,7 +57,6 @@
                     <th>Detalle</th>
                     <th>Precio Unit.</th>
                     <th>Cant. Stock</th>
-                    <th>Aplica impuestos</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -69,13 +68,6 @@
                     <td>{{ producto.detalle }}</td>
                     <td>${{ producto.precioUnit }}</td>
                     <td>{{ producto.stock }}</td>
-                    <td>
-                      {% if producto.impuesto %}
-                        <i class="fas fa-check-circle imp"></i>
-                      {% else %}
-                        <i class="fas fa-times-circle imp"></i>
-                      {% endif %}
-                    </td>
                     <td>
                       <button type="button" class="btn btn-secondary btn-editar" value="{{ producto.id }}">
                         <i class="fas fa-pen"></i>
@@ -126,16 +118,6 @@
                 <div class="form-group col-md-6">
                   <label for="stock">Stock</label>
                   <input type="number" class="form-control" id="stock" placeholder="0" required="required">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-md-3 offset-md-9">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="impuestos" checked="checked">
-                    <label class="form-check-label" for="impuestos">
-                      Aplica Impuestos
-                    </label>
-                  </div>
                 </div>
               </div>
               <div class="form-row error" style="display:none">
@@ -222,17 +204,13 @@
     } else {
       $("#Modaltitulo").append("Editar Producto N#" + id);
       row = $(".id-producto[value='"+id+"']").parent().parent().find("td");
+      
+      precio = row[3].outerText;
+      precio = parseInt(precio.substring(1));
       $("#codigo").val(row[1].outerText);
-      $("#precio").val(row[3].outerText);
+      $("#precio").val(precio);
       $("#detalle").val(row[2].outerText);
       $("#stock").val(row[4].outerText);
-      
-      if($(row[5].children[0]).hasClass("fa-check-circle")){
-        $("#impuestos").prop('checked', true);
-      } else {
-        $("#impuestos").prop('checked', false);
-      }
-
       $("#btn-modal-form").attr("onclick", "editarProducto('"+id+"')");
 
 
@@ -250,7 +228,6 @@
     precio = $("#precio").val();
     detalle = $("#detalle").val();
     stock = $("#stock").val();
-    impuesto = $("#impuestos").is(':checked');
 
     if( codigo =="" || precio =="" || detalle =="" || stock =="" ){
       $(".error").show();
@@ -277,7 +254,6 @@
           'precio': precio,
           'detalle': detalle,
           'stock': stock,
-          'impuesto': impuesto
 
         },
         success: function(datos){
@@ -291,13 +267,6 @@
 
           idSpan = '<span class="id-producto" value="'+datos["id"]+'">'+datos["id"]+'</span>';
 
-          console.log(datos["impuesto"]);
-          if(datos["impuesto"] == true){
-            icono_imp = '<i class="fas fa-check-circle imp"></i>';
-          } else {
-            icono_imp = '<i class="fas fa-times-circle imp"></i>';
-          }
-
           acciones = '<button type="button" class="btn btn-secondary btn-editar" value="'+datos["id"]+
           '"><i class="fas fa-pen"></i> </button> <button type="button" class="btn btn-danger btn-eliminar" value="'+datos["id"]+'"> <i class="fas fa-times"></i></button>';
 
@@ -308,7 +277,6 @@
               datos["detalle"],
               "$"+datos["precio"],
               datos["stock"],
-              icono_imp,
               acciones
             ]).draw();
         }
@@ -347,7 +315,6 @@
     precio = $("#precio").val();
     detalle = $("#detalle").val();
     stock = $("#stock").val();
-    impuesto = $("#impuestos").is(':checked');
 
     if( codigo =="" || precio =="" || detalle =="" || stock =="" ){
       $(".error").show();
@@ -370,7 +337,6 @@
           'precio': precio,
           'detalle': detalle,
           'stock': stock,
-          'impuesto': impuesto
 
         },
         success: function(datos){
@@ -383,12 +349,6 @@
           $("#ModalForm").modal('hide');
           idSpan = '<span class="id-producto" value="'+datos["id"]+'">'+datos["id"]+'</span>';
 
-          if(datos["impuesto"] == true){
-            icono_imp = '<i class="fas fa-check-circle imp"></i>';
-          } else {
-            icono_imp = '<i class="fas fa-times-circle imp"></i>';
-          }
-
           acciones = '<button type="button" class="btn btn-secondary btn-editar" value="'+datos["id"]+
           '"><i class="fas fa-pen"></i> </button> <button type="button" class="btn btn-danger btn-eliminar" value="'+datos["id"]+'"> <i class="fas fa-times"></i></button>';
 
@@ -400,7 +360,6 @@
                       datos["detalle"],
                       "$"+datos["precio"],
                       datos["stock"],
-                      icono_imp,
                       acciones ];
           table.row(row).data( newData ).draw();
 

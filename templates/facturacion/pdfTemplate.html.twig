@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Factura</title>
+</head>
+<body>
+
+<section class="sample-text-area" style="margin-top: 40px;">
+    <div class="container box_1170">
+        
+        <br>
+        <div class="row">
+
+            <div class="col-sm-8 offset-sm-2" style="border: 1px solid; padding: 30px">
+                <div class="row">
+                    <div class="col-sm-12">
+                        
+                    </div>
+                </div>
+                <table style="width:100%">
+                    <tr>
+                        <td>
+                            <h2>{{ factura.empresa.razonSocial }}</h2>
+                            <div><span>RUC: {{ factura.empresa.ruc }}</span></div>
+                            <div><span>{{ factura.empresa.direccion }}</span></div>
+                                
+
+                        </td>
+                        <td>
+                            <div><span><b>No de Factura</b></span></div>
+                            <div><span>{{ factura.establecimiento }}-{{ factura.puntoEmision }}-{{ factura.secFactura }}</span></div><br>
+                            <div><span><b>Fecha Emision</b></span></div>
+                            <div><span>{{ factura.fecha|date("d/m/Y") }}</span></div>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+                <div><span><h4 style="margin-bottom:10px; margin-top:10px">Cliente</h4></span></div>
+                <table style="width:100%">
+                    <tr>
+                        <td width="100px"><div class="col-sm-3"><b>Razon social</b></div></td>
+                        <td><div class="col-sm-9">{{ factura.cliente.razonSocial }}</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="col-sm-3"><b>CI/RUC</b></div></td>
+                        <td><div class="col-sm-9">{{ factura.cliente.ciRuc }}</div></td>
+                    </tr>
+                     <tr>
+                        <td><div class="col-sm-3"><b>Direccion</b></div></td>
+                        <td><div class="col-sm-9">{{ factura.cliente.direccion }}</div></td>
+                    </tr>
+                     <tr>
+                        <td><div class="col-sm-3"><b>Telefono</b></div></td>
+                        <td><div class="col-sm-9">{{ factura.cliente.telefono }}</div></td>
+                    </tr>
+                </table>
+
+
+                <br>
+                <div class="row">
+                    <div class="col-md-12"><span><h3>Detalle</h3></span></div>
+                    <table style="width:100%; border-collapse: collapse; border:1px solid">
+                        <tr>
+                            <td style="border:1px solid; padding:5px; text-align:center"><b>Producto</b></td>
+                            <td style="border:1px solid; padding:5px; text-align:center"><b>Precio Unit.</b></td>
+                            <td style="border:1px solid; padding:5px; text-align:center"><b>Cantidad</b></td>
+                            <td style="border:1px solid; padding:5px; text-align:center"><b>SubTotal</b></td>
+                        </tr>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td style="border:1px solid; padding:5px;">$ {{ detalle.producto.detalle }}</td>
+                            <td style="border:1px solid; padding:5px;">{{ detalle.producto.precioUnit }}</td>
+                            <td style="border:1px solid; padding:5px;">$ {{ detalle.cantidad }}</td>
+                            {% set subtotal =  detalle.producto.precioUnit  *  detalle.cantidad  %}
+                            <td style="border:1px solid; padding:5px; text-align:right">{{ subtotal }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td style="padding:5px;"></td>
+                            <td style="padding:5px;"></td>
+                            <td style="border:1px solid;padding:5px;text-align:right"><b>Subtotal</b></td>
+                            <td style="border:1px solid;padding:5px;text-align:right">${{ factura.subtotal }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:5px;"></td>
+                            <td style="padding:5px;"></td>
+                            <td style="border:1px solid;padding:5px;text-align:right"><b>Impuestos</b></td>
+                            <td style="border:1px solid;padding:5px;text-align:right">${{ factura.impuestos }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:5px;"></td>
+                            <td style="padding:5px;"></td>
+                            <td style="border:1px solid;padding:5px;text-align:right"><b>Total</b></td>
+                            <td style="border:1px solid;padding:5px;text-align:right">${{ factura.total }}</td>
+                        </tr>
+                    </table>
+                    <br>
+                    <br>
+                    <br>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+</section>
+
+</body>
+</html>>
