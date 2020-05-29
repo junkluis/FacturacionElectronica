@@ -10,7 +10,7 @@
 <style type="text/css">
     .nav-link{font-size:20px !important;}
     .dataTables_filter {display: none;}
-    .btn-success, .btn-secondary{margin-top: 30px;}
+    .btn-top{margin-top: 30px;}
     .div-btn{text-align: end;}
     #msjError{background-color: #ffe4e4; margin:10px;padding:10px; width: 100%;color:red;}
     .imp{font-size: 20px;}
@@ -54,10 +54,10 @@
         <div class="row">
             <div class="col-6"><h1><i class="fas fa-file-invoice"></i> Facturas</h1></div>
             <div class="col-6 div-btn">
-                <button type="button" class="btn btn-secondary" onclick="mostrarFiltros()">
+                <button type="button" class="btn btn-secondary btn-top" onclick="mostrarFiltros()">
                     <i class="fas fa-filter"></i> <span id="btn-filtro">Mostrar Filtros</span>
                 </button> &nbsp;
-                <button type="button" class="btn btn-success" onclick="abrirModalFactura()">
+                <button type="button" class="btn btn-success registrar-factura btn-top" >
                     <i class="fas fa-plus"></i> Registrar Nueva Factura
                 </button>
             </div>
@@ -95,68 +95,54 @@
 		<table id="facturas" class="display" style="width:100%">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Position</th>
-                    <th>Office</th>
-                    <th>Age</th>
-                    <th>Start date</th>
-                    <th>Salary</th>
+                    <th>Fecha</th>
+                    <th>Factura</th>
+                    <th>Empresa</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
+                {% for factura in facturas %}
                 <tr>
-                    <td>Tiger Nixon</td>
-                    <td>System Architect</td>
-                    <td>Edinburgh</td>
-                    <td>61</td>
-                    <td>2011/04/25</td>
-                    <td>$320,800</td>
+                    <td>{{ factura.fecha |date("m/d/Y") }}</td>
+                    <td class="id-factura" value="{{ factura.id }}">{{ factura.establecimiento }}-{{ factura.puntoEmision }}-{{ factura.secFactura }}</td>
+                    <td>{{ factura.empresa.razonSocial }}</td>
+                    <td>{{ factura.cliente.razonSocial }}</td>
+                    <td>$ {{ factura.total }}</td>
+                    <td width="150px">
+                        <button type="button" data-id="{{ factura.id }}" class="btn btn-info btn-imprimir"><i class="fas fa-print"></i></button>
+                        <button type="button" data-id="{{ factura.id }}" class="btn btn-secondary btn-revisar"><i class="fas fa-search"></i></button>
+                        <button type="button" onclick="alertaEliminar({{ factura.id }})" class="btn btn-danger btn-eliminar"><i class="fas fa-times"></i></button>
+                    </td>
                 </tr>
-                <tr>
-                    <td>Garrett Winters</td>
-                    <td>Accountant</td>
-                    <td>Tokyo</td>
-                    <td>63</td>
-                    <td>2011/07/25</td>
-                    <td>$170,750</td>
-                </tr>
-                <tr>
-                    <td>Ashton Cox</td>
-                    <td>Junior Technical Author</td>
-                    <td>San Francisco</td>
-                    <td>66</td>
-                    <td>2009/01/12</td>
-                    <td>$86,000</td>
-                </tr>
-                <tr>
-                    <td>Cedric Kelly</td>
-                    <td>Senior Javascript Developer</td>
-                    <td>Edinburgh</td>
-                    <td>22</td>
-                    <td>2012/03/29</td>
-                    <td>$433,060</td>
-                </tr>
-                <tr>
-                    <td>Airi Satou</td>
-                    <td>Accountant</td>
-                    <td>Tokyo</td>
-                    <td>33</td>
-                    <td>2008/11/28</td>
-                    <td>$162,700</td>
-                </tr>
-                <tr>
-                    <td>Brielle Williamson</td>
-                    <td>Integration Specialist</td>
-                    <td>New York</td>
-                    <td>61</td>
-                    <td>2012/12/02</td>
-                    <td>$372,000</td>
-                </tr>
-               
+                {% endfor %}
             </tbody>
         </table>
 	</div>
 </section>
+
+
+<div class="modal" id="Advertencia" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Se va a eliminar una Factura</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Esta seguro que desea continuar?.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger eliminar-definitivo" data-dismiss="modal" value="0" >Eliminar Empresa</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 {% endblock %}
@@ -190,9 +176,59 @@
             agregarProducto();
             console.log($("#detalles"));
         })
+
+        $('.registrar-factura').on('click', function(){
+            $(location).attr('href', 'facturacion/facturar');
+        });
+
+        $('.btn-revisar').on('click', function(){
+            console.log(this);
+            factura_id = $(this).attr('data-id');
+            $(location).attr('href', 'facturacion/cod'+factura_id);
+        })
+
+        $('.btn-imprimir').on('click', function(){
+            console.log(this);
+            factura_id = $(this).attr('data-id');
+            $(location).attr('href', 'facturacion/cod'+factura_id+'/imprimir');
+        })
+
+        $('.btn-eliminar').on('click', function(){
+            console.log(this);
+            factura_id = $(this).attr('data-id');
+            alertaEliminar(factura_id);
+        })
+
+        $(".eliminar-definitivo").click(function(){
+              id = $(this).attr("value");
+              eliminarFactura(id);
+          });
+
 	} );
 
     
+    function alertaEliminar(id){
+        $("#Advertencia").modal("show");
+        $(".eliminar-definitivo").attr("value", id);
+      }
+
+    function eliminarFactura(id){
+
+         $.ajax({
+            type:"POST",
+            url:"/facturacion/eliminarFactura",
+            data:{
+              'id': id
+            },
+            success: function(datos){
+              row = $(".id-factura[value='"+id+"']").parent();
+              console.log(row);
+              table = $('#facturas').DataTable();
+              table.row( row ).remove().draw();
+            }
+          });
+      }
+
 
     function mostrarFiltros(){
         if($("#filtros").is(":visible")){
@@ -204,13 +240,6 @@
             $("#btn-filtro").empty();
             $("#btn-filtro").append("Esconder Filtros");
         }
-    }
-
-    function abrirModalFactura(){
-        hoy = new Date();
-        fecha = (hoy.getMonth()+1) + "/" + hoy.getDate() + "/" + hoy.getFullYear();
-        $("#ModalFactura").modal('show');
-        $("#fechaemision").val(fecha);
     }
 
 

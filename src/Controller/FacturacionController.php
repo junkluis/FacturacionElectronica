@@ -32,6 +32,9 @@ class FacturacionController extends AbstractController
         $ClienteRepo = $em->getRepository(Cliente::class);
         $ProductoRepo = $em->getRepository(Producto::class);
         $EmpresaRepo = $em->getRepository(Empresa::class);
+        $Facturasepo = $em->getRepository(Factura::class);
+
+        $facturas = $Facturasepo->findAll();
 
         $clientes = $ClienteRepo->findAll();
         $productos = $ProductoRepo->findAll();
@@ -57,7 +60,8 @@ class FacturacionController extends AbstractController
             'puntoEmision' => $puntoEmision,
             'secuencia' => $secuencia,
             'empresas' => $empresas,
-            'productos' => $productos
+            'productos' => $productos,
+            'facturas' => $facturas
 
         ]);
     }
@@ -251,6 +255,34 @@ class FacturacionController extends AbstractController
 
         return $response;
 
+    }
+
+
+
+    /**
+     * @Route("/facturacion/eliminarFactura", name="eliminarFactura")
+     */
+    public function eliminarFactura()
+    {
+
+        $response = new Response();
+        $request = Request::createFromGlobals();
+        $em = $this->getDoctrine()->getManager();
+        $repositorio = $em->getRepository(Factura::class);
+
+        $data = $request->request;
+        $id = $data->get('id');
+        $factura = $repositorio->find($id);
+
+        $em->remove($factura);
+        $em->flush();
+
+        $response->setContent(json_encode([
+            'eliminado' => 'ok'
+        ]));
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
     }
 
 

@@ -52,7 +52,7 @@ class Factura
     private $fecha;
 
     /**
-     * @ORM\OneToMany(targetEntity=DetalleFactura::class, mappedBy="factura")
+     * @ORM\OneToMany(targetEntity=DetalleFactura::class, mappedBy="factura", orphanRemoval=true)
      */
     private $detalleFacturas;
 

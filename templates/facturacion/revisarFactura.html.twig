@@ -170,8 +170,11 @@
 
             $.ajax({
                   type:"POST",
-                  url:"/facturacion/cod"+'{{ factura.id }}'+"/imprimir",
-                  success: function(datos){}
+                  url:"/facturacion/cod{{ factura.id }}/imprimir",
+                  success: function(datos){
+                    console.log(datos);
+
+                  }
               });
 
         });
