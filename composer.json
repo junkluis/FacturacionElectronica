@@ -5,7 +5,7 @@
         "php": "^7.2.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "dompdf/dompdf": "^0.8.5",
+        "dompdf/dompdf": "^2.0.1",
         "knplabs/knp-snappy-bundle": "^1.7",
         "sensio/framework-extra-bundle": "^5.5",
         "symfony/apache-pack": "^1.0",
